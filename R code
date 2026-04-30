@@ -1,0 +1,392 @@
+#Import the data set 
+insurance_data = read.csv("c:\\Insurance_data.csv",header = TRUE) 
+head(insurance_data) 
+ 
+#clean the data set 
+data <- insurance_data[complete.cases(insurance_data) & !apply(insurance_data 
+== "", 1, any), ] 
+nrow(data) 
+summary(data) 
+ 
+#Install "survey" package 
+install.packages("survey") 
+library(survey) 
+ 
+###-----------Simple Random Sample------------###  
+#Calculate Sample size  
+install.packages("sampler") 
+library(sampler) 
+n<- rsampcalc(nrow(data), e=3, ci=95) 
+n 
+ 
+#draw the sample1 
+set.seed(12345) 
+SRS_Sample1 = rsamp(df = data, n=n, rep = FALSE) 
+SRS_Sample1 
+
+   
+ 
+#--------Sample1--------# 
+#obtain weights 
+SRS_Sample1$weight <- nrow(data) / n 
+ 
+#defining the survey design object 
+SRS_Sample1_design= svydesign(id=~1, weights=SRS_Sample1$weight , data= 
+SRS_Sample1) 
+summary(SRS_Sample1_design) 
+ 
+#Estimating the mean values 
+svymean(~age,SRS_Sample1_design) 
+svymean(~bmi,SRS_Sample1_design) 
+svymean(~bloodpressure,SRS_Sample1_design) 
+svymean(~children,SRS_Sample1_design) 
+svymean(~claim,SRS_Sample1_design) 
+ 
+#Estimating the proportions  
+svymean(~gender,SRS_Sample1_design) 
+svymean(~diabetic,SRS_Sample1_design) 
+svymean(~smoker,SRS_Sample1_design) 
+svymean(~region,SRS_Sample1_design) 
+ 
+#Estimating the totals 
+svytotal(~gender,SRS_Sample1_design) 
+svytotal(~diabetic,SRS_Sample1_design) 
+svytotal(~smoker,SRS_Sample1_design) 
+svytotal(~region,SRS_Sample1_design) 
+
+ 
+ 
+#regression estimations 
+plot(SRS_Sample1$claim,SRS_Sample1$age) 
+plot(SRS_Sample1$claim,SRS_Sample1$bmi) 
+plot(SRS_Sample1$claim,SRS_Sample1$bloodpressure) 
+plot(SRS_Sample1$claim,SRS_Sample1$children) 
+SLR1 = lm(claim ~ bloodpressure, data = SRS_Sample1) 
+summary(SLR1) 
+mean_Claim = coef(SLR1)[1] + coef(SLR1)[2]*mean(data$bloodpressure) 
+mean_Claim 
+ 
+ 
+#--------Sample2--------# 
+#draw the sample2 
+set.seed(23456) 
+SRS_Sample2 = rsamp(df = data, n=n, rep = FALSE) 
+SRS_Sample2#Import the data set 
+insurance_data = read.csv("c:\\Insurance_data.csv",header = TRUE) 
+head(insurance_data) 
+ 
+#obtain weights 
+SRS_Sample2$weight <- nrow(data) / n 
+#defining the survey design object 
+SRS_Sample2_design= svydesign(id=~1, weights=SRS_Sample2$weight , data= 
+SRS_Sample2) 
+summary(SRS_Sample2_design) 
+
+ 
+ 
+#Estimating the mean values 
+svymean(~age,SRS_Sample2_design) 
+svymean(~bmi,SRS_Sample2_design) 
+svymean(~bloodpressure,SRS_Sample2_design) 
+svymean(~children,SRS_Sample2_design) 
+svymean(~claim,SRS_Sample2_design) 
+ 
+#Estimating the proportions   
+svymean(~gender,SRS_Sample2_design) 
+svymean(~diabetic,SRS_Sample2_design) 
+svymean(~smoker,SRS_Sample2_design) 
+svymean(~region,SRS_Sample2_design) 
+ 
+#Estimating the totals 
+svytotal(~gender,SRS_Sample2_design) 
+svytotal(~diabetic,SRS_Sample2_design) 
+svytotal(~smoker,SRS_Sample2_design) 
+svytotal(~region,SRS_Sample2_design) 
+ 
+#regression estimations 
+SLR2 = lm(claim ~ bloodpressure, data = SRS_Sample2) 
+summary(SLR2) 
+mean_Claim = coef(SLR2)[1] + coef(SLR2)[2]*mean(data$bloodpressure) 
+mean_Claim 
+
+ 
+ 
+###------Stratified Sampling-------### 
+#Calculate Sample size  
+n_strata<-ssampcalc(df=data, n=n, strata =smoker) 
+n_strata 
+ 
+###-----sample1-----### 
+#draw the sample1 
+set.seed(12346) 
+strat_sample1=ssamp(df=data,n=n,strata=smoker,over=1) 
+strat_sample1 
+ 
+#obtaining weight 
+strat_data1$weight <- table(data$smoker)[as.character(strat_data1$smoker)] / 
+table(strat_data1$smoker)[as.character(strat_data1$smoker)] 
+#defining the survey design object 
+Strat1_design=svydesign(id=~1,strata = ~smoker,weights = ~weight,data 
+=strat_data1 ) 
+summary(Strat1_design) 
+ 
+#Estimating the mean values 
+svymean(~age,Strat1_design) 
+svymean(~bmi,Strat1_design) 
+svymean(~bloodpressure,Strat1_design) 
+svymean(~children,Strat1_design) 
+svymean(~claim,Strat1_design) 
+ 
+ 
+#Estimating the proportions  
+svymean(~gender,Strat1_design) 
+svymean(~diabetic,Strat1_design) 
+svymean(~smoker,Strat1_design) 
+svymean(~region,Strat1_design) 
+ 
+#Estimating the totals 
+svytotal(~gender,Strat1_design) 
+svytotal(~diabetic,Strat1_design) 
+svytotal(~smoker,Strat1_design) 
+svytotal(~region,Strat1_design) 
+ 
+#regression estimations 
+plot(strat_data1$claim,strat_data1$age) 
+plot(strat_data1$claim,strat_data1$bmi) 
+plot(strat_data1$claim,strat_data1$bloodpressure) 
+plot(strat_data1$claim,strat_data1$children) 
+SSLR1 = lm(claim~bloodpressure, data = strat_data1) 
+SSLR1 
+mean_claim=coef(SSLR1)[1] + coef(SSLR1)[2]*mean(data$bloodpressure) 
+mean_claim 
+ 
+#--------Sample2--------# 
+#draw the sample2 
+set.seed(12347) 
+strat_sample2=ssamp(df=data,n=n,strata=smoker,over=1) 
+strat_sample2 
+ 
+#obtaining weight 
+strat_data2$weight <- table(data$smoker)[as.character(strat_data2$smoker)] / 
+table(strat_data2$smoker)[as.character(strat_data2$smoker)] 
+#defining the survey design object 
+Strat2_design=svydesign(id=~1,strata = ~smoker,weights = ~weight,data 
+=strat_data2 ) 
+summary(Strat2_design) 
+ 
+#Estimating the mean values 
+svymean(~age,Strat2_design) 
+svymean(~bmi,Strat2_design) 
+svymean(~bloodpressure,Strat2_design) 
+svymean(~children,Strat2_design) 
+svymean(~claim,Strat2_design) 
+ 
+#Estimating the proportions  
+svymean(~gender,Strat2_design) 
+svymean(~diabetic,Strat2_design) 
+svymean(~smoker,Strat2_design) 
+svymean(~region,Strat2_design) 
+ 
+#Estimating the totals 
+svytotal(~gender,Strat2_design) 
+svytotal(~diabetic,Strat2_design) 
+svytotal(~smoker,Strat2_design) 
+svytotal(~region,Strat2_design) 
+ 
+ 
+#regression estimations 
+SSLR2 = lm(claim~bloodpressure, data = strat_data2) 
+SSLR2 
+mean_claim=coef(SSLR2)[1] + coef(SSLR2)[2]*mean(data$bloodpressure) 
+mean_claim 
+ 
+ 
+##----sample1----## 
+#select Clusters 
+set.seed(12522) 
+selected_region1 <- sample(unique(data$region), size = 2, replace = FALSE) 
+selected_cluster_data1 <- data %>% filter(region %in% selected_region1) 
+ 
+#calculate sample size 
+n_cluster1<-ssampcalc(df=selected_cluster_data1, n=n, strata =region) 
+n_cluster1 
+ 
+#draw the sample1 
+cluster_sample1=ssamp(df=selected_cluster_data1,n=n,strata=region,over=1) 
+cluster_sample1 
+ 
+#obtaining weight 
+cluster_sample1$weight <- (nrow(selected_cluster_data1) / 
+table(cluster_sample1$region)[as.character(cluster_sample1$region)]) 
+ 
+ 
+#defining the survey design objectclust1_design=svydesign(id=~region,weights = 
+~weight,data=cluster_sample1) 
+summary(clust1_design) 
+ 
+#Estimating the mean values 
+svymean(~age,clust1_design) 
+svymean(~bmi,clust1_design) 
+svymean(~bloodpressure,clust1_design) 
+svymean(~children,clust1_design) 
+svymean(~claim,clust1_design) 
+ 
+#Estimating the proportions 
+svymean(~gender,clust1_design) 
+svymean(~diabetic,clust1_design) 
+svymean(~smoker,clust1_design) 
+svymean(~region,clust1_design) 
+ 
+#Estimating the totals 
+svytotal(~gender,clust1_design) 
+svytotal(~diabetic,clust1_design) 
+svytotal(~smoker,clust1_design) 
+svytotal(~region,clust1_design) 
+ 
+#regression estimations 
+plot(two_stage_sample1$claim,two_stage_sample1$age) 
+plot(two_stage_sample1$claim,two_stage_sample1$bloodpressure) 
+plot(two_stage_sample1$claim,two_stage_sample1$bmi) 
+
+ 
+ 
+plot(two_stage_sample1$claim,two_stage_sample1$children) 
+CSLR1 = lm(claim~bloodpressure,two_stage_sample1) 
+CSLR1 
+mean_claim=coef(CSLR1)[1] + coef(CSLR1)[2]*mean(data$bloodpressure) 
+mean_claim 
+ 
+#--------Sample2--------# 
+#select Clusters 
+set.seed(12541) 
+selected_region2 <- sample(unique(data$region), size = 2, replace = FALSE) 
+selected_cluster_data2 <- data %>% filter(region %in% selected_region2) 
+ 
+#calculate sample size 
+n_cluster2<-ssampcalc(df=selected_cluster_data2, n=n, strata =region) 
+n_cluster2 
+ 
+#draw the sample2 
+cluster_sample2=ssamp(df=selected_cluster_data2,n=n,strata=region,over=1) 
+cluster_sample2 
+ 
+#obtaining weight 
+cluster_sample2$weight <- (nrow(selected_cluster_data2) / 
+table(cluster_sample2$region)[as.character(cluster_sample2$region)]) 
+ 
+#defining the survey design object 
+clust2_design=svydesign(id=~region,weights = 
+~weight,data=cluster_sample2)summary(clust2_design) 
+
+ 
+#Estimating the mean values 
+svymean(~age,clust2_design) 
+svymean(~bmi,clust2_design) 
+svymean(~bloodpressure,clust2_design) 
+svymean(~children,clust2_design) 
+svymean(~claim,clust2_design) 
+ 
+#Estimating the proportions 
+svymean(~gender,clust2_design) 
+svymean(~diabetic,clust2_design) 
+svymean(~smoker,clust2_design) 
+svymean(~region,clust2_design) 
+ 
+#Estimating the totals 
+svytotal(~gender,clust2_design) 
+svytotal(~diabetic,clust2_design) 
+svytotal(~smoker,clust2_design) 
+svytotal(~region,clust2_design) 
+ 
+#regression estimations 
+CSLR2 = lm(claim~bloodpressure,two_stage_sample2) 
+CSLR2 
+mean_claim=coef(CSLR2)[1] + coef(CSLR2)[2]*mean(data$bloodpressure) 
+mean_claim 
+ 
+
+ 
+#####--------Population--------##### 
+#Population size 
+N=nrow(data) 
+ 
+#mean values 
+mean(data$age,na.rm=TRUE) 
+sqrt(var(data$age,na.rm=TRUE)/N) 
+mean(data$bmi,na.rm=TRUE) 
+sqrt(var(data$bmi,na.rm=TRUE)/N) 
+mean(data$bloodpressure,na.rm=TRUE) 
+sqrt(var(data$bloodpressure,na.rm=TRUE)/N) 
+mean(data$children,na.rm=TRUE) 
+sqrt(var(data$children,na.rm=TRUE)/N) 
+mean(data$claim,na.rm=TRUE) 
+sqrt(var(data$claim,na.rm=TRUE)/N) 
+ 
+#proportions 
+data.frame((table(data$gender))/length(data$gender)) 
+data.frame((table(data$diabetic))/length(data$diabetic)) 
+data.frame(table(data$smoker)/length(data$smoker)) 
+data.frame(table(data$region)/length(data$region)) 
+ 
+#totals 
+table(data$gender) 
+table(data$diabetic) 
+table(data$smoker) 
+table(data$region) 
+
+ 
+###------graphical analysis------### 
+#Bar Charts 
+byg<-svyby(~claim, by=~gender,Strat1_design, svymean) 
+barplot(byg, names.arg=c("Female","Male"),col="light blue",ylab="mean 
+claim",xlab="gender type",main="Mean Insurance Claim by Gender") 
+ 
+byr<-svyby(~claim, by=~region,Strat1_design, svymean) 
+barplot(byr,names.arg = c("Northeast", "Northwest","Southeast", 
+"Southwest"),col="light blue",ylab="mean claim",xlab="region type",main="Mean 
+Insurance Claim by Region") 
+ 
+bysm<-svyby(~claim, by=~smoker,Strat1_design, svymean) 
+barplot(bysm, names.arg=c("non_smoker","smoker"),col="light blue",ylab="mean 
+claim",xlab="smoking status",main="Mean Insurance Claim by Smoking") 
+ 
+byd<-svyby(~claim, by=~diabetic,Strat1_design, svymean) 
+barplot(byd,names.arg=c("non_diabetic","diabetic"),col="light blue",ylab="mean 
+claim",xlab="Diabetic status",main="Mean Insurance Claim by diabetic") 
+ 
+#Histograms 
+svyhist(~claim,SRS_Sample1_design,freq =TRUE,col="light green") 
+svyhist(~bloodpressure,SRS_Sample1_design,freq =TRUE,col="light blue") 
+svyhist(~bmi,SRS_Sample1_design,freq =TRUE,col="light yellow") 
+ 
+svyhist(~claim,Strat1_design,freq =TRUE,col="light green") 
+svyhist(~bloodpressure,Strat1_design,freq =TRUE,col="light blue") 
+svyhist(~bmi,Strat1_design,freq =TRUE,col="light yellow") 
+ 
+svyhist(~claim,clust1_design,freq =TRUE,col="light green") 
+svyhist(~bloodpressure,clust1_design,freq =TRUE,col="light blue") 
+svyhist(~bmi,clust1_design,freq =TRUE,col="light yellow") 
+ 
+hist(data$claim, freq = TRUE, col = "light green") 
+hist(data$bloodpressure, freq = TRUE, col = "light blue") 
+hist(data$bmi, freq = TRUE, col = "light yellow") 
+ 
+#Box plots 
+svyboxplot(claim~gender,SRS_Sample1_design,all.outliers=TRUE,col="light 
+yellow",xlab="Gender type",ylab="claim amount",main="claim vs Gender") 
+svyboxplot(claim~smoker,SRS_Sample1_design,all.outliers=TRUE,col="light 
+yellow",xlab="smoking status",ylab="claim amount",main="claim vs smoking") 
+svyboxplot(claim~region,SRS_Sample1_design,all.outliers=TRUE,col="light 
+yellow",xlab="Region ",ylab="claim amount",main="claim vs region") 
+svyboxplot(claim~diabetic,SRS_Sample1_design,all.outliers=TRUE,col="light 
+yellow",xlab="Diabetic status",ylab="claim amount",main="claim vs diabetic") 
+ 
+#Scatter plots 
+svyplot(claim~age,design=SRS_Sample1_design, 
+style="bubble",xlab="age",ylab="claim")  
+svyplot(claim~bloodpressure,design=SRS_Sample1_design, 
+style="bubble",xlab="bloodpressure",ylab="claim") 
+svyplot(claim~bmi,design=SRS_Sample1_design, 
+style="bubble",xlab="BMI",ylab="claim") 
+svyplot(claim~children,design=SRS_Sample1_design, 
+style="bubble",xlab="Number od children",ylab="claim")
