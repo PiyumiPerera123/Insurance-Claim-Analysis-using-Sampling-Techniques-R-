@@ -22,7 +22,10 @@ This project analyzes how demographic and health-related factors such as age, BM
 - Regression Estimation  
 
 ---
+##  Visualizations
 
+![Dashboard Screenshot](output/image1.png)
+![Dashboard Screenshot](output/image2.png)
 ##  Key Insights
 -  Strong relationship between **BMI and claim amounts**  
 -  **Smokers incur significantly higher insurance costs**  
